@@ -642,11 +642,11 @@ define("tinymce/dom/Selection", [
 				}
 
 				// WebKit egde case selecting images works better using setBaseAndExtent when the image is floated
-				if (!rng.collapsed && rng.startContainer == rng.endContainer && sel.setBaseAndExtent && !Env.ie) {
+				if (!rng.collapsed && rng.startContainer === rng.endContainer && sel.setBaseAndExtent && !Env.ie) {
 					if (rng.endOffset - rng.startOffset < 2) {
 						if (rng.startContainer.hasChildNodes()) {
 							node = rng.startContainer.childNodes[rng.startOffset];
-							if (node && node.tagName == 'IMG') {
+							if (node && node.tagName === 'IMG') {
 								sel.setBaseAndExtent(
 									rng.startContainer,
 									rng.startOffset,
