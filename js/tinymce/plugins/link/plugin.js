@@ -110,7 +110,7 @@ tinymce.PluginManager.add('link', function(editor) {
 	}
 
 	function toggleViewLinkState() {
-        var self = this;
+				var self = this;
 
 		var toggleVisibility = function (e) {
 			if (hasLinks(e.parents)) {
@@ -124,7 +124,7 @@ tinymce.PluginManager.add('link', function(editor) {
 			self.hide();
 		}
 
-        editor.on('nodechange', toggleVisibility);
+				editor.on('nodechange', toggleVisibility);
 
 		self.on('remove', function () {
 			editor.off('nodechange', toggleVisibility);
@@ -315,6 +315,7 @@ tinymce.PluginManager.add('link', function(editor) {
 				name: 'text',
 				type: 'textbox',
 				size: 40,
+				value: data.text,
 				label: 'Text to display',
 				onchange: function() {
 					data.text = this.value();
