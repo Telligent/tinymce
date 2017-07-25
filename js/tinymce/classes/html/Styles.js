@@ -32,7 +32,7 @@ define("tinymce/html/Styles", [], function() {
 		/*eslint max-len:0 */
 		var rgbRegExp = /rgb\s*\(\s*([0-9]+)\s*,\s*([0-9]+)\s*,\s*([0-9]+)\s*\)/gi,
 			urlOrStrRegExp = /(?:url(?:(?:\(\s*\"([^\"]+)\"\s*\))|(?:\(\s*\'([^\']+)\'\s*\))|(?:\(\s*([^)\s]+)\s*\))))|(?:\'([^\']+)\')|(?:\"([^\"]+)\")/gi,
-			styleRegExp = /\s*([^:]+):\s*([^;]+);?/g,
+			styleRegExp = /\s*([^:]+):\s*((?:url\((?:'[^']*'|"[^"]*"|[^\)]*)\)|[^;]+));?/g,
 			trimRightRegExp = /\s+$/,
 			i, encodingLookup = {}, encodingItems, validStyles, invalidStyles, invisibleChar = '\uFEFF';
 
