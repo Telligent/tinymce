@@ -406,6 +406,7 @@ tinymce.PluginManager.add('link', function(editor) {
 					size: 40,
 					autofocus: true,
 					label: 'Url',
+					value: data.href,
 					onchange: urlChange,
 					onkeyup: updateText,
 					onbeforecall: onBeforeCall
