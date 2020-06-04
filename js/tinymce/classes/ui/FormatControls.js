@@ -704,6 +704,46 @@ define("tinymce/ui/FormatControls", [
 			};
 		});
 
+		var fontSelectOptions = [];
+		(function() {
+			var defaultFontsFormats =
+				'Andale Mono=andale mono,monospace;' +
+				'Arial=arial,helvetica,sans-serif;' +
+				'Arial Black=arial black,sans-serif;' +
+				'Book Antiqua=book antiqua,palatino,serif;' +
+				'Comic Sans MS=comic sans ms,sans-serif;' +
+				'Courier New=courier new,courier,monospace;' +
+				'Georgia=georgia,palatino,serif;' +
+				'Helvetica=helvetica,arial,sans-serif;' +
+				'Impact=impact,sans-serif;' +
+				'Symbol=symbol;' +
+				'Tahoma=tahoma,arial,helvetica,sans-serif;' +
+				'Terminal=terminal,monaco,monospace;' +
+				'Times New Roman=times new roman,times,serif;' +
+				'Trebuchet MS=trebuchet ms,geneva,sans-serif;' +
+				'Verdana=verdana,geneva,sans-serif;' +
+				'Webdings=webdings;' +
+				'Wingdings=wingdings,zapf dingbats';
+
+			var fonts = createFormats(editor.settings.font_formats || defaultFontsFormats);
+
+			each(fonts, function(font) {
+				fontSelectOptions.push({
+					text: {raw: font[0]},
+					textStyle: font[1].indexOf('dings') == -1 ? 'font-family:' + font[1] : '',
+					onclick: function() {
+						editor.execCommand('FontName', false, font[1]);
+					}
+				});
+			});
+		})();
+
+		editor.addMenuItem('fontselect', {
+			text: 'Font Family',
+			context: 'format',
+			menu: fontSelectOptions
+		});
+
 		editor.addButton('fontsizeselect', function() {
 			var items = [], defaultFontsizeFormats = '8pt 10pt 12pt 14pt 18pt 24pt 36pt';
 			var fontsize_formats = editor.settings.fontsize_formats || defaultFontsizeFormats;
@@ -733,6 +773,36 @@ define("tinymce/ui/FormatControls", [
 				}
 			};
 		});
+
+
+	var fontSizeOptions = [];
+		(function() {
+			var defaultFontsizeFormats = '8pt 10pt 12pt 14pt 18pt 24pt 36pt';
+			var fontsize_formats = editor.settings.fontsize_formats || defaultFontsizeFormats;
+
+			each(fontsize_formats.split(' '), function(item) {
+				var text = item, value = item;
+				// Allow text=value font sizes.
+				var values = item.split('=');
+				if (values.length > 1) {
+					text = values[0];
+					value = values[1];
+				}
+				fontSizeOptions.push({
+					text: text,
+					onclick: function() {
+						editor.execCommand('FontSize', false, value);
+					}
+				});
+			});
+		})();
+
+		editor.addMenuItem('fontsizeselect', {
+			text: 'Font Sizes',
+			context: 'format',
+			menu: fontSizeOptions
+		});
+
 
 		editor.addMenuItem('formats', {
 			text: 'Formats',

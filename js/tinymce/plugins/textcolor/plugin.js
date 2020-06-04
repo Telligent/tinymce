@@ -95,10 +95,14 @@ tinymce.PluginManager.add('textcolor', function(editor) {
 		return colors;
 	}
 
-	function renderColorPicker() {
-		var ctrl = this, colors, color, html, last, x, y, i, id = ctrl._id, count = 0, type;
+	function renderColorPicker(type) {
+		var ctrl = this, colors, color, html, last, x, y, i, id = ctrl._id, count = 0, showCustomColors = true;
 
-		type = ctrl.settings.origin;
+		if (!type) {
+			type = ctrl.settings.origin;
+		} else {
+			showCustomColors = false;
+		}
 
 		function getColorCellHtml(color, title) {
 			var isNoColor = color == 'transparent';
@@ -155,13 +159,15 @@ tinymce.PluginManager.add('textcolor', function(editor) {
 				'</tr>'
 			);
 
-			html += '<tr>';
+			if (showCustomColors) {
+				html += '<tr>';
 
-			for (x = 0; x < cols[type]; x++) {
-				html += getColorCellHtml('', 'Custom color');
+				for (x = 0; x < cols[type]; x++) {
+					html += getColorCellHtml('', 'Custom color');
+				}
+
+				html += '</tr>';
 			}
-
-			html += '</tr>';
 		}
 
 		html += '</tbody></table>';
@@ -185,21 +191,31 @@ tinymce.PluginManager.add('textcolor', function(editor) {
 		});
 	}
 
-	function onPanelClick(e) {
-		var buttonCtrl = this.parent(), value, type;
+	function onPanelClick(e, type, format) {
+		var buttonCtrl, value, isPanel = true;
 
-		type = buttonCtrl.settings.origin;
+		if (!type || !format) {
+			buttonCtrl = this.parent();
+			type = buttonCtrl.settings.origin;
+			format = buttonCtrl.settings.format;
+		} else {
+			isPanel = false;
+		}
 
 		function selectColor(value) {
-			buttonCtrl.hidePanel();
-			buttonCtrl.color(value);
-			applyFormat(buttonCtrl.settings.format, value);
+			if (isPanel) {
+				buttonCtrl.hidePanel();
+				buttonCtrl.color(value);
+			}
+			applyFormat(format, value);
 		}
 
 		function resetColor() {
-			buttonCtrl.hidePanel();
-			buttonCtrl.resetColor();
-			removeFormat(buttonCtrl.settings.format);
+			if (isPanel) {
+				buttonCtrl.hidePanel();
+				buttonCtrl.resetColor();
+			}
+			removeFormat(format);
 		}
 
 		function setDivColor(div, value) {
@@ -208,44 +224,51 @@ tinymce.PluginManager.add('textcolor', function(editor) {
 		}
 
 		if (tinymce.DOM.getParent(e.target, '.mce-custom-color-btn')) {
-			buttonCtrl.hidePanel();
+			if (isPanel) {
+				buttonCtrl.hidePanel();
+			}
 
 			editor.settings.color_picker_callback.call(editor, function(value) {
-				var tableElm = buttonCtrl.panel.getEl().getElementsByTagName('table')[0];
-				var customColorCells, div, i;
+				if (isPanel) {
+					var tableElm = buttonCtrl.panel.getEl().getElementsByTagName('table')[0];
+					var customColorCells, div, i;
 
-				customColorCells = tinymce.map(tableElm.rows[tableElm.rows.length - 1].childNodes, function(elm) {
-					return elm.firstChild;
-				});
+					customColorCells = tinymce.map(tableElm.rows[tableElm.rows.length - 1].childNodes, function(elm) {
+						return elm.firstChild;
+					});
 
-				for (i = 0; i < customColorCells.length; i++) {
-					div = customColorCells[i];
-					if (!div.getAttribute('data-mce-color')) {
-						break;
+					for (i = 0; i < customColorCells.length; i++) {
+						div = customColorCells[i];
+						if (!div.getAttribute('data-mce-color')) {
+							break;
+						}
 					}
+
+					// Shift colors to the right
+					// TODO: Might need to be the left on RTL
+					if (i == cols[type]) {
+						for (i = 0; i < cols[type] - 1; i++) {
+							setDivColor(customColorCells[i], customColorCells[i + 1].getAttribute('data-mce-color'));
+						}
+					}
+
+					setDivColor(div, value);
 				}
 
-				// Shift colors to the right
-				// TODO: Might need to be the left on RTL
-				if (i == cols[type]) {
-					for (i = 0; i < cols[type] - 1; i++) {
-						setDivColor(customColorCells[i], customColorCells[i + 1].getAttribute('data-mce-color'));
-					}
-				}
-
-				setDivColor(div, value);
 				selectColor(value);
-			}, getCurrentColor(buttonCtrl.settings.format));
+			}, getCurrentColor(format));
 		}
 
 		value = e.target.getAttribute('data-mce-color');
 		if (value) {
-			if (this.lastId) {
-				document.getElementById(this.lastId).setAttribute('aria-selected', false);
-			}
+			if (isPanel) {
+				if (this.lastId) {
+					document.getElementById(this.lastId).setAttribute('aria-selected', false);
+				}
 
-			e.target.setAttribute('aria-selected', true);
-			this.lastId = e.target.id;
+				e.target.setAttribute('aria-selected', true);
+				this.lastId = e.target.id;
+			}
 
 			if (value == 'transparent') {
 				resetColor();
@@ -253,7 +276,9 @@ tinymce.PluginManager.add('textcolor', function(editor) {
 				selectColor(value);
 			}
 		} else if (value !== null) {
-			buttonCtrl.hidePanel();
+			if (isPanel) {
+				buttonCtrl.hidePanel();
+			}
 		}
 	}
 
@@ -293,5 +318,41 @@ tinymce.PluginManager.add('textcolor', function(editor) {
 			onclick: onPanelClick
 		},
 		onclick: onButtonClick
+	});
+
+	editor.addMenuItem('forecolor', {
+		text: 'Text color',
+		context: 'format',
+		icon: 'forecolor',
+		menu: [
+			{
+				type: 'container',
+				role: 'application',
+				ariaRemember: true,
+				html: renderColorPicker('forecolor'),
+				onclick: function(e) {
+					onPanelClick(e, 'forecolor', 'forecolor');
+					this.parent().cancel();
+				}
+			}
+		]
+	});
+
+	editor.addMenuItem('backcolor', {
+		text: 'Background color',
+		context: 'format',
+		icon: 'backcolor',
+		menu: [
+			{
+				type: 'container',
+				role: 'application',
+				ariaRemember: true,
+				html: renderColorPicker('backcolor'),
+				onclick: function(e) {
+					onPanelClick(e, 'backcolor', 'hilitecolor');
+					this.parent().cancel();
+				}
+			}
+		]
 	});
 });
